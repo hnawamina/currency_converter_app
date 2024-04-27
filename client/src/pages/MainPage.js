@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
+import axios from "axios";
 
 export default function MainPage() {
 
@@ -8,17 +9,37 @@ export default function MainPage() {
     const [targetCurrency, setTargetCurrency] = useState("");
     const [amountInSourceCurrency, setAmountInSourceCurrency] = useState(0);
     const [amountInTargetCurrency, setamountInTargetCurrency] = useState(0);
+    const [currencyNames, setcurrencyNames] = useState([]);
 
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
         e.preventDefault();
-        console.log(
-            date,
-            sourceCurrency,
-            targetCurrency,
-            amountInSourceCurrency
-        );
+        try {
+            const responce = await axios.get("http://localhost:5000/convert",{
+                params:{
+                    date,
+                    sourceCurrency,
+                    targetCurrency,
+                    amountInSourceCurrency,
+                },
+            });
+            
+            setamountInTargetCurrency(responce.data);
+        } catch (error) {
+            console.error(error);
+        }
     }
+
+    useEffect(() => {
+        const getCurrencyNames = async () => {
+            try {
+                const responce = await axios.get("http://localhost:5000/getAllCurrencies");
+                setcurrencyNames(responce.data);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        getCurrencyNames();
+    }, [])
 
     return (
         <>
@@ -52,6 +73,11 @@ export default function MainPage() {
                                 value={sourceCurrency}
                                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'>
                                 <option value="">Select Source Currency</option>
+                                {Object.keys(currencyNames).map((currency) => (
+                                    <option className='p-1' key={currency} value={currency}>
+                                        {currencyNames[currency]}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         <div class="mb-4">
@@ -65,6 +91,11 @@ export default function MainPage() {
                                 value={targetCurrency}
                                 className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'>
                                 <option value="">Select target Currency</option>
+                                {Object.keys(currencyNames).map((currency) => (
+                                    <option className='p-1' key={currency} value={currency}>
+                                        {currencyNames[currency]}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -79,14 +110,14 @@ export default function MainPage() {
                                 id={amountInSourceCurrency}
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter Amount" required />
                         </div>
-                        <button  className='bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md mt-2'>
+                        <button className='bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md mt-2'>
                             {" "}
                             Get the target Currency
                         </button>
                     </form>
                 </section>
             </div>
-
+          {amountInTargetCurrency}
         </>
 
     )
